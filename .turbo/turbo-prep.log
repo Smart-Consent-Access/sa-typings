@@ -1,0 +1,3 @@
+[32m@smart-consent-access/sa-typings:prep: [0mcache hit, replaying output [2m34fd6c9db48691fd[0m
+[32m@smart-consent-access/sa-typings:prep: [0mwarning package.json: No license field
+[32m@smart-consent-access/sa-typings:prep: [0m$ tsc --declaration
