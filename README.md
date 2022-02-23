@@ -1,11 +1,18 @@
-# `@smart-consent-access/sa-typings`
+# Types for Smart Access
 
-> TODO: description
+Types used by Smart Access SDK and other Smart Access related services.
+
+## Install
+
+`npm install @smart-consent-access/sa-typings`
 
 ## Usage
 
-```
-const aoTypings = require('@smart-consent-access/sa-typings');
+### Example
+`import { SAAuthTicket } from "@smart-consent-access/sa-typings";`
 
-// TODO: DEMONSTRATE API
+```
+const result: SAAuthTicket = await SA.policyEnforcement.ticketAudit({
+      ticket: ticket,
+    });
 ```
