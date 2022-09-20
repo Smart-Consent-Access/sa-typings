@@ -9,11 +9,21 @@ export interface SAFlowJWTBase extends SAJsonWebToken {
   /** Shows the direction of flow for user. Flows from system A->B with initialization, and back from B->A with finalization */
   goal: "INITIATE" | "FINALIZE";
 
-  /** The type of flow - what is being created. ConsentRequest or Consent (Approval)  */
-  type: "CONSENT_REQUEST" | "CONSENT_APPROVAL";
+  /** The type of flow - what is being created. ConsentRequest or Consent (Approval/Rejection)  */
+  type: "CONSENT_REQUEST" | "CONSENT_APPROVAL" | "CONSENT_REJECTION";
 
   kind: "FLOW";
   scope: ["serviceprovider:flow"];
+}
+
+export interface SAFlowJWTForSmartAccess extends SAFlowJWTBase {
+  aud: "Association Orchestrator";
+  reqServiceProviderId?: string;
+  consServiceProviderId?: string;
+  consReqId?: string;
+  actions?: string[];
+  resources?: string[];
+  conditions?: string[];
 }
 
 //
@@ -55,9 +65,8 @@ export interface SAFlowJWTBase extends SAJsonWebToken {
     ]
   }
  */
-export interface SAConsReqInitializeSp1ToSaJWT extends SAFlowJWTBase {
+export interface SAConsReqInitializeSp1ToSaJWT extends SAFlowJWTForSmartAccess {
   iss: string;
-  aud: "Association Orchestrator";
   goal: "INITIATE";
   type: "CONSENT_REQUEST";
 
@@ -130,6 +139,13 @@ export interface SAConsReqInitializeSaToSp2JWT extends SAFlowJWTBase {
   reqServiceProviderName: string;
 }
 
+export interface ReceivedSAConsReqInitialization {
+  ticket: SAConsReqInitializeSaToSp2JWT,
+  actionString: ActionString[],
+  resourceString: ResourceString[],
+  conditionString: ConditionString[],
+}
+
 /**
  * Flow token for when SP2 wants to finalize a consent request against AH
  * AH <-- SP2 : Finalize Consent Request
@@ -149,9 +165,8 @@ export interface SAConsReqInitializeSaToSp2JWT extends SAFlowJWTBase {
  *  "consReqId":"22908842-c978-475e-88b1-0560606a4364"
  * }
  */
-export interface SAConsReqFinalizeSp2ToSaJWT extends SAFlowJWTBase {
+export interface SAConsReqFinalizeSp2ToSaJWT extends SAFlowJWTForSmartAccess {
   iss: string;
-  aud: "Association Orchestrator";
   goal: "FINALIZE";
   type: "CONSENT_REQUEST";
 
@@ -163,6 +178,9 @@ export interface SAConsReqFinalizeSp2ToSaJWT extends SAFlowJWTBase {
 
   /** ID of ConsentRequest as received from AH */
   consReqId: string;
+
+  /** Estimated number of users affected*/
+  numAffectedUsers: number;
 }
 
 /**
@@ -185,6 +203,7 @@ export interface SAConsReqFinalizeSp2ToSaJWT extends SAFlowJWTBase {
       "telia:smartfamily/EndTime=12:00"
     ],
     "consReqId": "22908842-c978-475e-88b1-0560606a4364",
+    "numAffectedUsers": 1,
     "consServiceProviderId": "080f264e-99f6-49d3-938c-b8c2d93bf179",
     "iat": 1639041255,
     "exp": 1639041855,
@@ -210,13 +229,20 @@ export interface SAConsReqFinalizeSaToSp1JWT extends SAFlowJWTBase {
   consReqId: string;
 }
 
+export interface ReceivedSAConsReqFinalization {
+  ticket: SAConsReqFinalizeSaToSp1JWT,
+  actionString: ActionString[],
+  resourceString: ResourceString[],
+  conditionString: ConditionString[],
+}
+
 //
 // Consent Approval
 //
 
 /**
- * Flow token for when SP2 wants to initialize a consent approval against AH
- * AH <-- SP2 : Initiate Consent Approval
+ * Flow token for when SP2 wants to initialize a consent approval or rejection against SmartAccess
+ * SA <-- SP2 : Initiate Consent Approval/Rejection
  * 
  * @example {
  *  "goal":"INITIATE",
@@ -233,12 +259,12 @@ export interface SAConsReqFinalizeSaToSp1JWT extends SAFlowJWTBase {
  *  "iss":"a0e3b3dd-3d00-4c59-a4ad-40361ea96931"
  * }
  */
-export interface SAConsApprovalInitializeSp2ToSaJWT extends SAFlowJWTBase {
+export interface SAConsApprovalInitializeSp2ToSaJWT extends SAFlowJWTForSmartAccess {
   /** ServiceProvder making this consent approval */
   iss: string;
-  aud: "Association Orchestrator"; // @TODO: This is now requester id but should be Association Orchestrator
   goal: "INITIATE";
-  type: "CONSENT_APPROVAL";
+  /** Initiate an approval or a rejection */
+  type: "CONSENT_APPROVAL" | "CONSENT_REJECTION";
   /** ID of ConsentRequest to approve */
   consReqId: string;
 
@@ -247,16 +273,17 @@ export interface SAConsApprovalInitializeSp2ToSaJWT extends SAFlowJWTBase {
   /** SP2-internal id/ref of the legal entity making the consent approval */
   consPrincipalId: string;
 
-  /** Actions approved by user */
+  /** Actions approved or rejected by user */
   actions: string[];
-  /** Resources approved by user */
+  /** Resources approved or rejected by user */
   resources: string[];
+  /** Conditions approved or rejected by user */
   conditions: string[];
 }
 
 /**
- * Flow token for when AH passes on the desire to initialize a consent approval towards SP1
- * SP1 <-- AH : Initiate Consent Approval
+ * Flow token for when SA passes on the desire to initialize a consent approval or rejection towards SP1
+ * SP1 <-- AH : Initiate Consent Approval/Rejection
  * 
  * @example {
  *  "goal":"INITIATE",
@@ -280,27 +307,36 @@ export interface SAConsApprovalInitializeSaToSp1JWT extends SAFlowJWTBase {
   iss: "Association Orchestrator";
   aud: string;
   goal: "INITIATE";
-  type: "CONSENT_APPROVAL";
-  /** ID of ConsentRequest to approve */
+  /** Initiate an approval or a rejection */
+  type: "CONSENT_APPROVAL" | "CONSENT_REJECTION";
+  /** ID of ConsentRequest to approve/reject */
   consReqId: string;
 
-  /** ServiceProvder making this consent approval */
+  /** ServiceProvder making this consent */
   consServiceProviderId: string;
-  /** Display name of who is making the consent approval  */
+  /** Display name of who is making the consent  */
   consPrincipalName: string;
-  /** SP2-internal id/ref of the legal entity making the consent approval */
+  /** SP2-internal id/ref of the legal entity making the consent */
   consPrincipalId: string;
 
-  /** Actions approved by user */
+  /** Actions approved or rejected by user */
   actions: string[];
-  /** Resources approved by user */
+  /** Resources approved or rejected by user */
   resources: string[];
+  /** Conditions approved or rejected by user */
   conditions: string[];
 
-  /** ID of the pending Consent (Approval) created by Association Orchestrator during flow */
+  /** ID of the pending consent created by Association Orchestrator during flow */
   consId: string;
-  /** Display name of ServiceProvider making consent approval */
+  /** Display name of ServiceProvider making the consent */
   consServiceProviderName: string;
+}
+
+export interface ReceivedSAConsInitialization {
+  ticket: SAConsApprovalInitializeSaToSp1JWT,
+  actionString: ActionString[],
+  resourceString: ResourceString[],
+  conditionString: ConditionString[],
 }
 
 /**
@@ -318,9 +354,8 @@ export interface SAConsApprovalInitializeSaToSp1JWT extends SAFlowJWTBase {
  *  "iss":"a0e3b3dd-3d00-4c59-a4ad-40361ea96931"
  * }
  */
-export interface SAConsApprovalFinalizeSp1ToSaJWT extends SAFlowJWTBase {
+export interface SAConsApprovalFinalizeSp1ToSaJWT extends SAFlowJWTForSmartAccess {
   iss: string;
-  aud: "Association Orchestrator";
   goal: "FINALIZE";
   type: "CONSENT_APPROVAL";
 
@@ -355,4 +390,27 @@ export interface SAConsApprovalFinalizeSaToSp2JWT extends SAFlowJWTBase {
   consReqId: string;
   /** ID of Consent (Approval) that has now been completed */
   consId: string;
+}
+
+export interface ActionString {
+  tenant: string;
+  system: string;
+  actionName: string;
+}
+
+export interface ResourceString {
+  tenant: string;
+  system: string;
+  resourceTags: Expression[];
+}
+
+export interface ConditionString {
+  tenant: string;
+  system: string;
+  expression: Expression;
+}
+
+export interface Expression {
+  key: string;
+  value: string;
 }

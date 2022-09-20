@@ -3,7 +3,7 @@
 # Pushes any changes to git hub and releases a new version of typings to npm. For first time use run 'npm login' first.
 
 # Package version, updated before publishing
-version=1.0.2
+version=1.0.4
 
 # Commit note for github
 release_note=$1

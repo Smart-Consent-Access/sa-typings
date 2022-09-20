@@ -7,6 +7,7 @@ export interface SAEmbeddedForm {
     consenter_service_name: string;
     consenter_friendly_name: string;
     consenter_icon_url: string;
+    display_affected_users: LocalizedString[];
     policy_requests: SAEmbeddedFormPolicy[];
 }
 interface SAEmbeddedFormPolicy {
@@ -49,10 +50,12 @@ export interface EmbeddedFormTokenData {
     type: 'SA_EMB_CONS_APPR_FORM' | 'SA_EMB_CONS_REQ_FORM';
     iss: string;
     AUD: 'AOEMB';
+    consPrincipalId?: string;
 }
 export interface ConsentRequest {
     actions: string[];
     approvalUrl?: string;
+    approvalToken?: string;
     conditions: string[];
     consServiceProviderId: string;
     consents: any[];
@@ -64,6 +67,10 @@ export interface ConsentRequest {
     termsAndConditions: string;
     resources: string[];
     purpose: LocalizedString[];
+    numApproved: number;
+    numRejected: number;
+    responseTotalStatus: "PENDING" | "COMPLETED";
+    numAffectedUsers: number;
 }
 export interface MakeConsentFormResponse {
     form: SAEmbeddedForm;
@@ -72,6 +79,12 @@ export interface MakeConsentFormRequest {
     consReqFormToken: string;
 }
 export interface FinalizeConsentApprovalSelectionRequest {
+    consReqFormToken: string;
+    resources?: string[];
+    conditions?: string[];
+    actions?: string[];
+}
+export interface FinalizeConsentRejectionSelectionRequest {
     consReqFormToken: string;
     resources?: string[];
     conditions?: string[];

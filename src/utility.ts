@@ -8,3 +8,5 @@
   format?: 'text' | 'markdown';
   value: string;
 }
+
+export type CachePrefix = "Consent" | "ConsentRequest" | "Credential" | "Presentation";

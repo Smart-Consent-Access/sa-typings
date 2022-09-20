@@ -3,4 +3,5 @@ export interface LocalizedString {
     format?: 'text' | 'markdown';
     value: string;
 }
+export declare type CachePrefix = "Consent" | "ConsentRequest" | "Credential" | "Presentation";
 //# sourceMappingURL=utility.d.ts.map

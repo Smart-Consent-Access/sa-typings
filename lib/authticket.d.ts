@@ -1,7 +1,8 @@
-import { SAJsonWebToken } from "./jwt";
+import { SAJsonWebToken, ScopeType } from "./jwt";
 export interface SAAuthTicket extends SAJsonWebToken {
+    iss: "Association Orchestrator";
     kind: "AUTH_TICKET";
-    scope: ["serviceprovider:ticket"];
+    scope: ScopeType[];
     reqServiceProviderId: string;
     reqPrincipalId: string;
     consServiceProviderId: string;

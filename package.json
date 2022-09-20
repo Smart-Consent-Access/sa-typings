@@ -1,12 +1,16 @@
 {
   "name": "@smart-consent-access/sa-typings",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "prep": "tsc --declaration"
   },
+  "peerDependencies": {
+    "jose": "^4.8.3"
+  },
   "devDependencies": {
-    "typescript": "^4.4.4"
+    "typescript": "^4.4.4",
+    "jose": "^4.8.3"
   }
 }

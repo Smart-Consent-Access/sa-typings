@@ -14,6 +14,7 @@ import { SAConsReqInitializeSaToSp2JWT, LocalizedString } from ".";
   consenter_service_name: string; // Telia Smart Family
   consenter_friendly_name: string; // Johan D (SF user)
   consenter_icon_url: string;
+  display_affected_users: LocalizedString[]; // This will affect 1 household
 
   // In the MVP2 demo, the doorlock consent requests "fits" in a single policy.
   // But array (below) is needed for more complex scenarios, e.g combination of multiple unrelated actions/resources.
@@ -88,12 +89,14 @@ export interface EmbeddedFormTokenData {
   cr: ConsentRequest | SAConsReqInitializeSaToSp2JWT;
   type: 'SA_EMB_CONS_APPR_FORM' | 'SA_EMB_CONS_REQ_FORM';
   iss: string;
-  AUD: 'AOEMB'
+  AUD: 'AOEMB';
+  consPrincipalId?: string;
 }
 
 export interface ConsentRequest {
   actions: string[];
   approvalUrl?: string;
+  approvalToken?: string;
   conditions: string[];
   consServiceProviderId: string;
   consents: any[]; // TODO: move type for consents from sdk to sa-typings
@@ -105,6 +108,10 @@ export interface ConsentRequest {
   termsAndConditions: string;
   resources: string[];
   purpose: LocalizedString[];
+  numApproved: number;
+  numRejected: number;
+  responseTotalStatus: "PENDING" | "COMPLETED";
+  numAffectedUsers: number;
 }
 
 export interface MakeConsentFormResponse {
@@ -117,7 +124,13 @@ export interface MakeConsentFormRequest {
 
 export interface FinalizeConsentApprovalSelectionRequest {
   consReqFormToken: string;
-  /* Approved resources */
+  resources?: string[];
+  conditions?: string[];
+  actions?: string[];
+}
+
+export interface FinalizeConsentRejectionSelectionRequest {
+  consReqFormToken: string;
   resources?: string[];
   conditions?: string[];
   actions?: string[];
